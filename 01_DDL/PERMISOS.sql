@@ -1,2 +1,3 @@
 GRANT SELECT ON CPSAD.CS_ACTUALIZA_DATOS_SEQ TO WEB;  
 GRANT select, insert, update, delete ON CPSAD.CS_ACTUALIZA_DATOS TO WEB;
+GRANT select, insert, update, delete ON RE.BFP_PERSONA TO WEB;
