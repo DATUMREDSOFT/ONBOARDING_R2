@@ -36,7 +36,6 @@ DECLARE
 	eafiliado_new varchar2(3, BYTE) := null;
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.
-    vestadoonboarding varchar2(100) := null;
 
 BEGIN
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
@@ -146,21 +145,7 @@ BEGIN
 
     IF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO IN ('I','V','L')
     THEN
-
-        BEGIN
-            SELECT ESTADO INTO vestadoonboarding 
-            FROM WEB.WEB_DOCS_OCR_DATA
-            WHERE cod_cliente = :NEW.NUP;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                vestadoonboarding := NULL;
-            WHEN OTHERS THEN
-                vestadoonboarding := NULL;
-        END;
-
-        IF NVL(vestadoonboarding, ' ') = 'PEN' THEN
-        --COMENARTIO
-            INSERT INTO cpsad.cs_actualiza_datos (
+        INSERT INTO cpsad.cs_actualiza_datos (
                 id_actualizacion,
                 fecha_actualizacion,
                 tipo_documento_ad,
@@ -198,8 +183,7 @@ BEGIN
                 fecha_procesado,
                 fecha_modificado,
                 modificado_por,
-                fuente,
-                registro_AAD
+                fuente
             ) VALUES (
                 cpsad.cs_actualiza_datos_seq.nextval,
                 SYSDATE,
@@ -238,97 +222,8 @@ BEGIN
                 NULL,
                 NULL,
                 NULL,
-                'BFP_PERSONA',
-                'S'
-        );
-        
-        ELSE
-            INSERT INTO cpsad.cs_actualiza_datos (
-                id_actualizacion,
-                fecha_actualizacion,
-                tipo_documento_ad,
-                num_id,
-                fecha_nacimiento_ad,
-                nup,
-                cod_empresa,
-                primer_nombre_old,
-                primer_nombre_new,
-                segundo_nombre_old,
-                segundo_nombre_new,
-                primer_apellido_old,
-                primer_apellido_new,
-                segundo_apellido_old,
-                segundo_apellido_new,
-                apellido_casada_old,
-                apellido_casada_new,
-                tipo_documento_old,
-                tipo_documento_new,
-                numero_documento_old,
-                numero_documento_new,
-                fecha_nacimiento_old,
-                fecha_nacimiento_new,
-                correo1_old,
-                correo1_new,
-                correo2_old,
-                correo2_new,
-                ind_estado_registro_old,
-                ind_estado_registro_new,
-                estado_afiliado_old,
-                estado_afiliado_new,
-                estado,
-                adicionado_por,
-                fecha_ingresado,
-                fecha_procesado,
-                fecha_modificado,
-                modificado_por,
-                fuente,
-                registro_AAD
-            ) VALUES (
-                cpsad.cs_actualiza_datos_seq.nextval,
-                SYSDATE,
-                :old.tipo_id,
-                :old.num_id,
-                :old.fecha_nacimiento,
-                :old.nup,
-                1,
-                pnombre_old,
-				pnombre_new,
-				snombre_old,
-				snombre_new,
-				papellido_old,
-				papellido_new,
-				sapellido_old,
-				sapellido_new,
-				acasada_old,
-				acasada_new,
-                tid_old,
-				tid_new,
-				nid_old,
-				nid_new,
-				fnacimiento_old,
-				fnacimiento_new,
-				celectronico_old,
-				celectronico_new,
-				celectronico2_old,
-				celectronico2_new,
-				ind_er_old,
-				ind_er_new,
-                eafiliado_old,
-                eafiliado_new,
-                1,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                'BFP_PERSONA',
-                NULL
-        );
-        
-        END IF;
-
-        
-        
+                'BFP_PERSONA'
+            );
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
     INSERT INTO cpsad.cs_actualiza_datos (

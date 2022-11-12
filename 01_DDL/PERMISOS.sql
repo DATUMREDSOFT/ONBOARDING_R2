@@ -1,3 +1,9 @@
-GRANT SELECT ON CPSAD.CS_ACTUALIZA_DATOS_SEQ TO WEB;  
-GRANT select, insert, update, delete ON CPSAD.CS_ACTUALIZA_DATOS TO WEB;
+
+--PA
+GRANT select, insert, update, delete ON PA.TEL_PERSONA TO WEB;
+
+--RE
 GRANT select, insert, update, delete ON RE.BFP_PERSONA TO WEB;
+
+--WEB
+GRANT select, insert, update, delete ON WEB.WEB_DOCS_OCR_DATA TO RE;
