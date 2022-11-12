@@ -16,6 +16,8 @@ DECLARE
    f_fecha_expedicion_id	NUMBER(2, 0)			:=0;
    f_fecha_expiracion		NUMBER(2, 0)			:=0;
    f_telefono_find			NUMBER(2, 0)			:=0;
+   f_telefono_exist			NUMBER(2, 0)			:=0;
+   v_telefono_exist 	    VARCHAR2(20 CHAR)		:=NULL;
 
   --actualiza datos
     v_ID_ACTUALIZACION NUMBER :=0;
@@ -250,30 +252,44 @@ BEGIN
 		       	v_num_telefono := NULL;
 		   END;
            
-          
+           BEGIN
+                SELECT NUM_TELEFONO INTO v_telefono_exist FROM TEL_PERSONAS WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO = TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
+            EXCEPTION
+              WHEN NO_DATA_FOUND THEN
+                v_telefono_exist := NULL;
+              WHEN OTHERS THEN
+                v_telefono_exist := NULL;
+            END;
            
-         INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.COD_CLIENTE',:NEW.COD_CLIENTE);
-         INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_num_telefono',v_num_telefono);
-         INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, :NEW.TELEFONO ,REPLACE(:NEW.TELEFONO , '503 ', ''));
-
-		   IF NVL(v_num_telefono, ' ') != TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
-            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_num_telefono ES DIFERETE',v_num_telefono);
-            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'NUM_TELEFONO',TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')));
+           
+           IF NVL(v_num_telefono, ' ') = ' ' THEN                          
+                IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
+                     UPDATE TEL_PERSONAS SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
+                ELSE
+                    INSERT INTO TEL_PERSONAS
+                    (COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
+                    VALUES
+                    (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
+                END IF;
+           
+           ELSE
+           
+            UPDATE TEL_PERSONAS SET   EST_TELEFONO = 'I' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO = v_num_telefono;
             
-            IF NVL(v_num_telefono, ' ') != ' ' THEN
-             UPDATE TEL_PERSONAS SET   EST_TELEFONO = 'I' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND TIP_TELEFONO ='M' AND EST_TELEFONO ='A' AND NUM_TELEFONO = v_num_telefono;
+             IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
+                 UPDATE TEL_PERSONAS SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
+            ELSE
+                INSERT INTO TEL_PERSONAS
+                (COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
+                VALUES
+                (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
             END IF;
             
-            INSERT INTO TEL_PERSONAS
-            (COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
-            VALUES
-            (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
+           
+           END IF;
+          
+           
             
-		   		
-		   END IF;
-
-		    		  		  		  
-
 
 		  --PREPARADO PARA INSERT EN DB INTERMEDIA AD
 
@@ -422,7 +438,7 @@ BEGIN
 
 
 
-		  INSERT INTO CPSAD.CS_ACTUALIZA_DATOS 
+		  INSERT INTO CS_ACTUALIZA_DATOS 
 		  (
 			  	ID_ACTUALIZACION,
 			    FECHA_ACTUALIZACION,
