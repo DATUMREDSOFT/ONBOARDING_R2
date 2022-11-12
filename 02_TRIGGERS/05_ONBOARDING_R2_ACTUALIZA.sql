@@ -45,6 +45,8 @@ DECLARE
     v_usuario_AAD VARCHAR2(10 CHAR)             :=NULL;
 
 BEGIN
+    DELETE FROM WEB.LOGS_ONBRD_TEMP;
+    
 	BEGIN
 		SELECT NUP INTO v_num_id FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE AND ROWNUM <=1;
 	EXCEPTION
@@ -74,6 +76,10 @@ BEGIN
 	    END;
 
 	   IF v_estado_afiliado IS NOT NULL AND v_estado_afiliado = 'ACT'  THEN
+       
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.COD_CLIENTE', :NEW.COD_CLIENTE);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_estado_afiliado', v_estado_afiliado);
+        
            
 	   		--CORREO ELECTRONICO
 	   		BEGIN 
@@ -84,7 +90,7 @@ BEGIN
 		      WHEN OTHERS THEN
 		       	v_correo_electronico := NULL;
 		   	END;
-                
+            
 		    --CORREO ELECTRONICO 2
 		    BEGIN 
 		   		SELECT CORREO_ELECTRONICO2 INTO v_correo_electronico2 FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
@@ -115,6 +121,11 @@ BEGIN
 		       	v_estado_email2 := NULL;
 		   	END;
 
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.CORREO_ELECTRONICO', :NEW.CORREO_ELECTRONICO);  
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_correo_electronico',v_correo_electronico);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_correo_electronico2',v_correo_electronico2);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_estado_email1',v_estado_email1);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_estado_email2',v_estado_email2);
             
 
             IF :NEW.CORREO_ELECTRONICO IS NOT NULL THEN
@@ -124,6 +135,8 @@ BEGIN
                  END IF;
                 END IF;
             END IF;
+            
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_modifica_correo',f_modifica_correo);
             
             
 
@@ -139,10 +152,17 @@ BEGIN
 		       	v_fecha_expedicion_id := NULL;
 		   	END;
             
+            
+            
 
-		    IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YYYY'), 'DD-MON-YYYY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YYYY'), 'DD-MON-YYYY') THEN
+		    IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YYYY'), 'DD-MON-YY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY'), 'DD-MON-YYYY') THEN
 		   		f_fecha_expedicion_id :=1;
 		    END IF;
+            
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.DOC_DATEOFISSUE',:NEW.DOC_DATEOFISSUE);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.DOC_DATEOFISSUE PARSER',TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YYYY'), 'DD-MON-YY'));
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_fecha_expedicion_id PARSER',TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY')));
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_fecha_expedicion_id',f_fecha_expedicion_id);
             
             
 		   --FECHA_EXPIRACION
@@ -155,49 +175,56 @@ BEGIN
 		       	v_fecha_expiracion := NULL;
 		   	END;
             
+            
+            
           
 
 		    IF TO_CHAR(TO_DATE(:NEW.DOC_DATEOFEXPIRY ,'DD-MM-YYYY'), 'DD-MON-YYYY') != NVL(TO_CHAR(TO_DATE(v_fecha_expiracion,'DD-MON-YYYY'), 'DD-MON-YYYY'), ' ')  THEN
 		   		f_fecha_expiracion :=1;
 		    END IF;
             
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.DOC_DATEOFEXPIRY',:NEW.DOC_DATEOFEXPIRY);
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.DOC_DATEOFEXPIRY PARSER',TO_CHAR(TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YYYY'), 'DD-MON-YY'));
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'v_fecha_expiracion PARSER',TO_CHAR(TO_DATE(v_fecha_expiracion,'DD-MON-YY')));
+            INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_fecha_expiracion',f_fecha_expiracion);
+            
    
             IF f_modifica_correo = 1 AND  f_fecha_expedicion_id = 0 AND f_fecha_expiracion =0 THEN
 		    	UPDATE RE.BFP_PERSONA SET CORREO_ELECTRONICO = :NEW.CORREO_ELECTRONICO, ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
             
             IF f_modifica_correo = 0 AND  f_fecha_expedicion_id = 1 AND f_fecha_expiracion =0 THEN
 		    	UPDATE RE.BFP_PERSONA SET  FECHA_EXPEDICION_ID = :NEW.DOC_DATEOFISSUE,  ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
             
             IF f_modifica_correo = 0 AND  f_fecha_expedicion_id = 0 AND f_fecha_expiracion =1 THEN
 		    	UPDATE RE.BFP_PERSONA SET FECHA_EXPIRACION = :NEW.DOC_DATEOFEXPIRY, ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
         
            
 		    IF f_modifica_correo = 1 AND  f_fecha_expedicion_id = 1 AND f_fecha_expiracion =1 THEN
-                
-		    	UPDATE BFP_PERSONA SET CORREO_ELECTRONICO = :NEW.CORREO_ELECTRONICO, FECHA_EXPEDICION_ID = :NEW.DOC_DATEOFISSUE,  FECHA_EXPIRACION = :NEW.DOC_DATEOFEXPIRY, ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+                INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_modifica_correo = 1 AND  f_fecha_expedicion_id = 1 AND f_fecha_expiracion =1','TRUE');
+              
+		    	UPDATE BFP_PERSONA SET CORREO_ELECTRONICO = :NEW.CORREO_ELECTRONICO, FECHA_EXPEDICION_ID = TO_DATE(TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YYYY'), 'DD-MON-YY'),  FECHA_EXPIRACION = TO_DATE(TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YYYY'), 'DD-MON-YY'), ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
                
 		    END IF;
 
 		    IF f_modifica_correo = 0 AND  f_fecha_expedicion_id = 1 AND f_fecha_expiracion =1 THEN
 		    	UPDATE RE.BFP_PERSONA SET  FECHA_EXPEDICION_ID = :NEW.DOC_DATEOFISSUE,  FECHA_EXPIRACION = :NEW.DOC_DATEOFEXPIRY, ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
 
 		    IF f_modifica_correo = 0 AND  f_fecha_expedicion_id = 0 AND f_fecha_expiracion =1 THEN
 		    	UPDATE RE.BFP_PERSONA SET    FECHA_EXPIRACION = :NEW.DOC_DATEOFEXPIRY, ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
 
 		   IF f_modifica_correo = 0 AND  f_fecha_expedicion_id = 0 AND f_fecha_expiracion =0 THEN
 		    	UPDATE RE.BFP_PERSONA SET  ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE;
-		    	COMMIT;
+		    	
 		    END IF;
 
 
@@ -235,14 +262,14 @@ BEGIN
 
 		   IF v_num_telefono IS NOT NULL THEN
 		   		UPDATE PA.TEL_PERSONAS SET NUM_TELEFONO = REPLACE(:NEW.TELEFONO , '503 ', ''), ORIGEN_CEL ='O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND TIP_TELEFONO ='M' AND EST_TELEFONO ='A';
-		   		COMMIT;
+		   		
 		   END IF;
 
 		   IF v_num_telefono IS  NULL THEN
 		   		INSERT INTO PA.TEL_PERSONAS
 				(COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
 				VALUES(:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
-		   		COMMIT;
+		   		
 		   END IF;		  		  		  		  
 
 
@@ -451,9 +478,6 @@ BEGIN
 				v_registro_AAD,
 				v_usuario_AAD 
 		  );
-		 COMMIT;
-
-
 
 
 
