@@ -36,6 +36,8 @@ DECLARE
 	eafiliado_new varchar2(3, BYTE) := null;
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.
+    vestadoonboarding VARCHAR2(10 CHAR) := null;
+    err_msg  VARCHAR2(200 CHAR) := null;
 
 BEGIN
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
@@ -223,90 +225,200 @@ BEGIN
                 NULL,
                 NULL,
                 'BFP_PERSONA'
-            );
+        );
+
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
-    INSERT INTO cpsad.cs_actualiza_datos (
-                id_actualizacion,
-                fecha_actualizacion,
-                tipo_documento_ad,
-                num_id,
-                fecha_nacimiento_ad,
-                nup,
-                cod_empresa,
-                primer_nombre_old,
-                primer_nombre_new,
-                segundo_nombre_old,
-                segundo_nombre_new,
-                primer_apellido_old,
-                primer_apellido_new,
-                segundo_apellido_old,
-                segundo_apellido_new,
-                apellido_casada_old,
-                apellido_casada_new,
-                tipo_documento_old,
-                tipo_documento_new,
-                numero_documento_old,
-                numero_documento_new,
-                fecha_nacimiento_old,
-                fecha_nacimiento_new,
-                correo1_old,
-                correo1_new,
-                correo2_old,
-                correo2_new,
-                ind_estado_registro_old,
-                ind_estado_registro_new,
-                estado_afiliado_old,
-                estado_afiliado_new,
-                estado,
-                adicionado_por,
-                fecha_ingresado,
-                fecha_procesado,
-                fecha_modificado,
-                modificado_por,
-                fuente
-            ) VALUES (
-                cpsad.cs_actualiza_datos_seq.nextval,
-                SYSDATE,
-                :old.tipo_id,
-                :old.num_id,
-                :old.fecha_nacimiento,
-                :old.nup,
-                1,
-                pnombre_old,
-				pnombre_new,
-				snombre_old,
-				snombre_new,
-				papellido_old,
-				papellido_new,
-				sapellido_old,
-				sapellido_new,
-				acasada_old,
-				acasada_new,
-                tid_old,
-				tid_new,
-				nid_old,
-				nid_new,
-				fnacimiento_old,
-				fnacimiento_new,
-				celectronico_old,
-				celectronico_new,
-				celectronico2_old,
-				celectronico2_new,
-				ind_er_old,
-				ind_er_new,
-                eafiliado_old,
-                eafiliado_new,
-                1,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                'BFP_PERSONA'
-            );
+                INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, '******************************','*****************************');
+              -- INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'vestadoonboarding',vestadoonboarding);
+                INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':old.nup',:old.nup);
+                BEGIN
+                    SELECT ESTADO INTO vestadoonboarding  FROM WEB.WEB_DOCS_OCR_DATA WHERE cod_cliente = to_char(:old.nup) AND ROWNUM <=1;
+                    --INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'vestadoonboarding',vestadoonboarding);
+                EXCEPTION
+                    WHEN NO_DATA_FOUND THEN
+                        vestadoonboarding := NULL;
+                      --  INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'NO_DATA_FOUND',vestadoonboarding);
+                    WHEN OTHERS THEN
+                        vestadoonboarding := NULL; --to_char(SQLCODE); -- SQLCODE||' -ERROR- '||SQLERRM;
+                      
+                      err_msg := SUBSTR(SQLERRM, 1, 200);
+                      INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'SQLCODE',err_msg);  
+                END;
+
+                IF NVL(vestadoonboarding, ' ') = 'PEN' THEN
+                     INSERT INTO cpsad.cs_actualiza_datos (
+                        id_actualizacion,
+                        fecha_actualizacion,
+                        tipo_documento_ad,
+                        num_id,
+                        fecha_nacimiento_ad,
+                        nup,
+                        cod_empresa,
+                        primer_nombre_old,
+                        primer_nombre_new,
+                        segundo_nombre_old,
+                        segundo_nombre_new,
+                        primer_apellido_old,
+                        primer_apellido_new,
+                        segundo_apellido_old,
+                        segundo_apellido_new,
+                        apellido_casada_old,
+                        apellido_casada_new,
+                        tipo_documento_old,
+                        tipo_documento_new,
+                        numero_documento_old,
+                        numero_documento_new,
+                        fecha_nacimiento_old,
+                        fecha_nacimiento_new,
+                        correo1_old,
+                        correo1_new,
+                        correo2_old,
+                        correo2_new,
+                        ind_estado_registro_old,
+                        ind_estado_registro_new,
+                        estado_afiliado_old,
+                        estado_afiliado_new,
+                        estado,
+                        adicionado_por,
+                        fecha_ingresado,
+                        fecha_procesado,
+                        fecha_modificado,
+                        modificado_por,
+                        fuente,
+                        registro_AAD
+                    ) VALUES (
+                        cpsad.cs_actualiza_datos_seq.nextval,
+                        SYSDATE,
+                        :old.tipo_id,
+                        :old.num_id,
+                        :old.fecha_nacimiento,
+                        :old.nup,
+                        1,
+                        pnombre_old,
+                        pnombre_new,
+                        snombre_old,
+                        snombre_new,
+                        papellido_old,
+                        papellido_new,
+                        sapellido_old,
+                        sapellido_new,
+                        acasada_old,
+                        acasada_new,
+                        tid_old,
+                        tid_new,
+                        nid_old,
+                        nid_new,
+                        fnacimiento_old,
+                        fnacimiento_new,
+                        celectronico_old,
+                        celectronico_new,
+                        celectronico2_old,
+                        celectronico2_new,
+                        ind_er_old,
+                        ind_er_new,
+                        eafiliado_old,
+                        eafiliado_new,
+                        1,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        'BFP_PERSONA',
+                        'S'
+                    );
+                ELSE
+                    INSERT INTO cpsad.cs_actualiza_datos (
+                        id_actualizacion,
+                        fecha_actualizacion,
+                        tipo_documento_ad,
+                        num_id,
+                        fecha_nacimiento_ad,
+                        nup,
+                        cod_empresa,
+                        primer_nombre_old,
+                        primer_nombre_new,
+                        segundo_nombre_old,
+                        segundo_nombre_new,
+                        primer_apellido_old,
+                        primer_apellido_new,
+                        segundo_apellido_old,
+                        segundo_apellido_new,
+                        apellido_casada_old,
+                        apellido_casada_new,
+                        tipo_documento_old,
+                        tipo_documento_new,
+                        numero_documento_old,
+                        numero_documento_new,
+                        fecha_nacimiento_old,
+                        fecha_nacimiento_new,
+                        correo1_old,
+                        correo1_new,
+                        correo2_old,
+                        correo2_new,
+                        ind_estado_registro_old,
+                        ind_estado_registro_new,
+                        estado_afiliado_old,
+                        estado_afiliado_new,
+                        estado,
+                        adicionado_por,
+                        fecha_ingresado,
+                        fecha_procesado,
+                        fecha_modificado,
+                        modificado_por,
+                        fuente,
+                        registro_AAD
+                    ) VALUES (
+                        cpsad.cs_actualiza_datos_seq.nextval,
+                        SYSDATE,
+                        :old.tipo_id,
+                        :old.num_id,
+                        :old.fecha_nacimiento,
+                        :old.nup,
+                        1,
+                        pnombre_old,
+                        pnombre_new,
+                        snombre_old,
+                        snombre_new,
+                        papellido_old,
+                        papellido_new,
+                        sapellido_old,
+                        sapellido_new,
+                        acasada_old,
+                        acasada_new,
+                        tid_old,
+                        tid_new,
+                        nid_old,
+                        nid_new,
+                        fnacimiento_old,
+                        fnacimiento_new,
+                        celectronico_old,
+                        celectronico_new,
+                        celectronico2_old,
+                        celectronico2_new,
+                        ind_er_old,
+                        ind_er_new,
+                        eafiliado_old,
+                        eafiliado_new,
+                        1,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        NULL,
+                        'BFP_PERSONA',
+                        SUBSTR(vestadoonboarding, 1,1)
+                    );
+                END IF;
+
+                
+
+
             ELSIF (:NEW.ESTADO_AFILIADO = 'FCD' AND :OLD.IND_ESTADO_REGISTRO = 'A') 
             THEN
+
+
             INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
                         fecha_actualizacion,
@@ -392,7 +504,10 @@ BEGIN
                         NULL,
                         NULL
                     );
+
+
             END IF;
+
 EXCEPTION
     WHEN NO_APLICA THEN
 	     NULL;
