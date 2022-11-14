@@ -2,7 +2,7 @@ CREATE OR REPLACE TRIGGER "RE"."BFP_PERSONA_ACTUALIZA_TRG" AFTER
     UPDATE OF primer_nombre,segundo_nombre,tipo_id,num_id,fecha_nacimiento,
     primer_apellido,segundo_apellido,apellido_casada,correo_electronico,
     correo_electronico2,ind_estado_registro,ESTADO_AFILIADO,ESTADO_EMAIL1,
-    ESTADO_EMAIL2
+    ESTADO_EMAIL2, etapa_info_elect
     ON RE.bfp_persona
     REFERENCING
             OLD AS old
@@ -36,8 +36,6 @@ DECLARE
 	eafiliado_new varchar2(3, BYTE) := null;
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.
-    vestadoonboarding VARCHAR2(10 CHAR) := null;
-    err_msg  VARCHAR2(2000 CHAR) := null;
 
 BEGIN
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
@@ -229,23 +227,7 @@ BEGIN
 
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
-               /* INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, '******************************','*****************************');
-              -- INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'vestadoonboarding',vestadoonboarding);
-                INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':old.nup',:old.nup);
-                --INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'ESTADO',:OLD.ESTADO);
-                BEGIN
-                    SELECT ESTADO INTO vestadoonboarding  FROM WEB.WEB_DOCS_OCR_DATA WHERE cod_cliente = to_char(:old.nup) AND ROWNUM <=1;
-                    --INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'vestadoonboarding',vestadoonboarding);
-                EXCEPTION
-                    WHEN NO_DATA_FOUND THEN
-                        vestadoonboarding := NULL;
-                      --  INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'NO_DATA_FOUND',vestadoonboarding);
-                    WHEN OTHERS THEN
-                        vestadoonboarding := NULL; --to_char(SQLCODE); -- SQLCODE||' -ERROR- '||SQLERRM;
-                      
-                      err_msg := SUBSTR(SQLERRM, 1, 2000);
-                      INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'SQLCODE',err_msg);  
-                END;*/
+              
 
                 IF :NEW.ETAPA_INFO_ELECT = 4 THEN
                      INSERT INTO cpsad.cs_actualiza_datos (
