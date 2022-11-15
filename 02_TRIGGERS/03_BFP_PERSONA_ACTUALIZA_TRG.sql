@@ -138,7 +138,7 @@ BEGIN
 		vcampos_con_cambios := vcampos_con_cambios + 1;
 	end if;
     
-    if :old.ETAPA_INFO_ELECT <> :new.ETAPA_INFO_ELECT then 
+    if :old.ETAPA_INFO_ELECT <> :new.ETAPA_INFO_ELECT  and :new.ETAPA_INFO_ELECT =4 then 
 		vcampos_con_cambios := vcampos_con_cambios + 1;
 	end if;
 
@@ -300,8 +300,8 @@ BEGIN
                         nid_new,
                         fnacimiento_old,
                         fnacimiento_new,
-                        celectronico_old,
-                        celectronico_new,
+                        :OLD.correo_electronico,
+                        :new.correo_electronico,
                         celectronico2_old,
                         celectronico2_new,
                         ind_er_old,
