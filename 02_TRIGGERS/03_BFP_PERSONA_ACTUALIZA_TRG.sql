@@ -2,7 +2,7 @@ CREATE OR REPLACE TRIGGER "RE"."BFP_PERSONA_ACTUALIZA_TRG" AFTER
     UPDATE OF primer_nombre,segundo_nombre,tipo_id,num_id,fecha_nacimiento,
     primer_apellido,segundo_apellido,apellido_casada,correo_electronico,
     correo_electronico2,ind_estado_registro,ESTADO_AFILIADO,ESTADO_EMAIL1,
-    ESTADO_EMAIL2, etapa_info_elect
+    ESTADO_EMAIL2, ETAPA_INFO_ELECT
     ON RE.bfp_persona
     REFERENCING
             OLD AS old
@@ -37,7 +37,7 @@ DECLARE
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.
 
-BEGIN
+BEGIN 
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
 	-- en la tabla intermedia
     IF (:OLD.ESTADO_AFILIADO = 'FCD' AND :OLD.IND_ESTADO_REGISTRO = 'A' ) THEN
@@ -137,12 +137,18 @@ BEGIN
 		eafiliado_new:=:new.ESTADO_AFILIADO;
 		vcampos_con_cambios := vcampos_con_cambios + 1;
 	end if;
+    
+    if :old.ETAPA_INFO_ELECT <> :new.ETAPA_INFO_ELECT then 
+		vcampos_con_cambios := vcampos_con_cambios + 1;
+	end if;
+
 
 	-- Si no hay ningun cambio, procede a salirse sin generar registro en la tabla intermedia
     IF vcampos_con_cambios = 0 THEN
 	   RAISE no_aplica;
 	end if;
-
+    
+    
     IF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO IN ('I','V','L')
     THEN
         INSERT INTO cpsad.cs_actualiza_datos (
@@ -227,7 +233,7 @@ BEGIN
 
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
-              
+     
 
                 IF :NEW.ETAPA_INFO_ELECT = 4 THEN
                      INSERT INTO cpsad.cs_actualiza_datos (
