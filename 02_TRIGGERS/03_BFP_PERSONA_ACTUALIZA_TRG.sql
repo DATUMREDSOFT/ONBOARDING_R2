@@ -34,6 +34,7 @@ DECLARE
 	ind_er_new varchar2(1, BYTE)    := null;
     eafiliado_old varchar2(3, BYTE) := null;
 	eafiliado_new varchar2(3, BYTE) := null;
+    v_telefono VARCHAR2(12 BYTE)    := null;
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.
 
@@ -137,7 +138,7 @@ BEGIN
 		eafiliado_new:=:new.ESTADO_AFILIADO;
 		vcampos_con_cambios := vcampos_con_cambios + 1;
 	end if;
-    
+
     if :old.ETAPA_INFO_ELECT <> :new.ETAPA_INFO_ELECT  and :new.ETAPA_INFO_ELECT =4 then 
 		vcampos_con_cambios := vcampos_con_cambios + 1;
 	end if;
@@ -147,8 +148,8 @@ BEGIN
     IF vcampos_con_cambios = 0 THEN
 	   RAISE no_aplica;
 	end if;
-    
-    
+
+
     IF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO IN ('I','V','L')
     THEN
         INSERT INTO cpsad.cs_actualiza_datos (
@@ -233,9 +234,27 @@ BEGIN
 
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
-     
-
                 IF :NEW.ETAPA_INFO_ELECT = 4 THEN
+                
+                    BEGIN		 
+                    select
+                         num_telefono AS TELEFONO INTO v_telefono
+                    from
+                        PA.tel_personas
+                    where
+                        cod_persona = :NEW.nup
+                        and est_telefono = 'A'
+                        and tip_telefono = 'M'
+                        AND ROWNUM<=1;
+                        
+                   EXCEPTION
+                      WHEN NO_DATA_FOUND THEN
+                        v_telefono := NULL;
+                      WHEN OTHERS THEN
+                        v_telefono := NULL;
+                   END;
+                
+                
                      INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
                         fecha_actualizacion,
@@ -275,7 +294,9 @@ BEGIN
                         fecha_modificado,
                         modificado_por,
                         fuente,
-                        registro_AAD
+                        registro_AAD,
+                        telefono1_new,
+                        telefono1_old
                     ) VALUES (
                         cpsad.cs_actualiza_datos_seq.nextval,
                         SYSDATE,
@@ -315,8 +336,15 @@ BEGIN
                         NULL,
                         NULL,
                         'BFP_PERSONA',
-                        'S'
+                        'S',
+                        v_telefono,
+                        v_telefono
                     );
+
+
+
+
+
                 ELSE
                     INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
@@ -401,7 +429,7 @@ BEGIN
                     );
                 END IF;
 
-                
+
 
 
             ELSIF (:NEW.ESTADO_AFILIADO = 'FCD' AND :OLD.IND_ESTADO_REGISTRO = 'A') 
@@ -505,4 +533,3 @@ EXCEPTION
         || sqlerrm);
         RAISE;
 END;
-
