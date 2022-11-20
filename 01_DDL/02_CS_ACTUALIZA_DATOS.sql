@@ -16,3 +16,12 @@ IS
     'campo servirá para almacenar el código del usuario del afiliado que se creará en el AAD para ingresar a CV';
 
 COMMIT;
+
+
+alter table
+   CPSAD.CS_ACTUALIZA_DATOS
+modify
+(
+    usuario_AAD VARCHAR2(13 CHAR)
+);
+COMMIT;
