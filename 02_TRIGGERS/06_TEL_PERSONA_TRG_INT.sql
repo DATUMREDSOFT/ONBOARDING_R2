@@ -1,4 +1,4 @@
-create or replace TRIGGER "PA"."TEL_PERSONA_TRG_INT" AFTER
+CREATE OR REPLACE TRIGGER "PA"."TEL_PERSONA_TRG_INT" AFTER
     UPDATE OF num_telefono, ORIGEN_CEL ON PA.tel_personas
     REFERENCING
             OLD AS old

@@ -1,4 +1,4 @@
-create or replace TRIGGER ONBOARDING_R2_ACTUALIZA
+CREATE OR REPLACE TRIGGER ONBOARDING_R2_ACTUALIZA
 AFTER INSERT ON WEB.WEB_DOCS_OCR_DATA FOR EACH ROW 
 DECLARE 
    v_num_id_ok 				VARCHAR2(20 CHAR)		:=NULL;
@@ -21,7 +21,7 @@ DECLARE
 
 BEGIN
    -- DELETE FROM WEB.LOGS_ONBRD_TEMP;
-    
+
 	BEGIN
 		SELECT NUP INTO v_num_id FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE AND ROWNUM <=1;
 	EXCEPTION
@@ -30,7 +30,7 @@ BEGIN
       WHEN OTHERS THEN
        	v_num_id := NULL;
     END;
-    
+
     BEGIN
 		SELECT NUM_ID INTO v_num_id_ok FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE AND ROWNUM <=1;
 	EXCEPTION
@@ -51,8 +51,8 @@ BEGIN
 	    END;
 
 	   IF v_estado_afiliado IS NOT NULL AND v_estado_afiliado = 'ACT'  THEN
-       
-       
+
+
 	   		--CORREO ELECTRONICO
 	   		BEGIN 
 		   		SELECT CORREO_ELECTRONICO INTO v_correo_electronico FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
@@ -62,7 +62,7 @@ BEGIN
 		      WHEN OTHERS THEN
 		       	v_correo_electronico := NULL;
 		   	END;
-            
+
 		    --CORREO ELECTRONICO 2
 		    BEGIN 
 		   		SELECT CORREO_ELECTRONICO2 INTO v_correo_electronico2 FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
@@ -102,8 +102,8 @@ BEGIN
                  END IF;
                 END IF;
             END IF;
-            
-		    
+
+
 
 		  --FECHA_EXPEDICION_ID
 		    BEGIN 
@@ -114,16 +114,16 @@ BEGIN
 		      WHEN OTHERS THEN
 		       	v_fecha_expedicion_id := NULL;
 		   	END;
-            
-            
-            
+
+
+
 
 		    IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY'), 'DD-MON-YY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY'), 'DD-MON-YY') THEN
 		   		f_fecha_expedicion_id :=1;
 		    END IF;
-            
 
-            
+
+
 		   --FECHA_EXPIRACION
 		    BEGIN 
 		   		SELECT FECHA_EXPIRACION INTO v_fecha_expiracion FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
@@ -133,14 +133,14 @@ BEGIN
 		      WHEN OTHERS THEN
 		       	v_fecha_expiracion := NULL;
 		   	END;
-            
-            
+
+
 
 		    IF TO_CHAR(TO_DATE(:NEW.DOC_DATEOFEXPIRY ,'DD-MM-YYYY'), 'DD-MON-YY') != NVL(TO_CHAR(TO_DATE(v_fecha_expiracion,'DD-MON-YY'), 'DD-MON-YY'), ' ')  THEN
 		   		f_fecha_expiracion :=1;
 		    END IF;
-            
-            
+
+
             BEGIN		 
             select
                  num_telefono AS TELEFONO INTO v_num_telefono
@@ -151,14 +151,14 @@ BEGIN
                 and est_telefono = 'A'
                 and tip_telefono = 'M'
                 AND ROWNUM<=1;
-                
+
            EXCEPTION
 		      WHEN NO_DATA_FOUND THEN
 		        v_num_telefono := NULL;
 		      WHEN OTHERS THEN
 		       	v_num_telefono := NULL;
 		   END;
-           
+
            BEGIN
                 SELECT NUM_TELEFONO INTO v_telefono_exist FROM PA.tel_personas WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO = TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
             EXCEPTION
@@ -167,8 +167,8 @@ BEGIN
               WHEN OTHERS THEN
                 v_telefono_exist := NULL;
             END;
-           
-           
+
+
            IF NVL(v_num_telefono, ' ') = ' ' THEN                          
                 IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
                      UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
@@ -178,26 +178,26 @@ BEGIN
                     VALUES
                     (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
                 END IF;
-           
+
            ELSE
-            
+
              IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
                  UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
-             
+
              ELSE
-             
+
               UPDATE PA.tel_personas SET  NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')),  EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE  AND  EST_TELEFONO = 'A' AND tip_telefono='M';
-              
-           
+
+
              END IF;
            END IF; 
-          
-            
-            
-            
+
+
+
+
             UPDATE RE.BFP_PERSONA SET CORREO_ELECTRONICO = :NEW.CORREO_ELECTRONICO, FECHA_EXPEDICION_ID = TO_DATE(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YYYY'), 'DD-MON-YY'),  FECHA_EXPIRACION = TO_DATE(TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YYYY'), 'DD-MON-YY'), ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE; 
-            
-        
+
+
 
 	   END IF;
 
@@ -205,8 +205,8 @@ BEGIN
 
    EXCEPTION
    WHEN OTHERS THEN
-     raise_application_error(-20091, ' Error al crear registro en BFP_PERSONA.' || sqlerrm);
-     RAISE;
+    raise_application_error(-20091, ' Error al crear registro en BFP_PERSONA.' || sqlerrm);
+    RAISE;
    NULL;
 
 END;

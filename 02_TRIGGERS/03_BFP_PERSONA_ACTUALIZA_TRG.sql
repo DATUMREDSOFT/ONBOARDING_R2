@@ -235,7 +235,7 @@ BEGIN
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
                 IF :NEW.ETAPA_INFO_ELECT = 4 THEN
-                
+
                     BEGIN		 
                     select
                          num_telefono AS TELEFONO INTO v_telefono
@@ -246,15 +246,15 @@ BEGIN
                         and est_telefono = 'A'
                         and tip_telefono = 'M'
                         AND ROWNUM<=1;
-                        
+
                    EXCEPTION
                       WHEN NO_DATA_FOUND THEN
                         v_telefono := NULL;
                       WHEN OTHERS THEN
                         v_telefono := NULL;
                    END;
-                
-                
+
+
                      INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
                         fecha_actualizacion,
@@ -303,10 +303,10 @@ BEGIN
                         :old.tipo_id,
                         :old.num_id,
                         :old.fecha_nacimiento,
+                        :new.primer_nombre,
                         :old.nup,
                         1,
                         :old.primer_nombre,
-                        :new.primer_nombre,
                         :old.segundo_nombre,
                         :new.segundo_nombre,
                         :old.primer_apellido,
@@ -435,8 +435,7 @@ BEGIN
             ELSIF (:NEW.ESTADO_AFILIADO = 'FCD' AND :OLD.IND_ESTADO_REGISTRO = 'A') 
             THEN
 
-
-            INSERT INTO cpsad.cs_actualiza_datos (
+             INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
                         fecha_actualizacion,
                         tipo_documento_ad,
