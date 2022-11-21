@@ -36,7 +36,9 @@ DECLARE
 	eafiliado_new varchar2(3, BYTE) := null;
     v_telefono VARCHAR2(12 BYTE)    := null;
 	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
-	                                      -- de campos con cambios a insertar.
+	                                      -- de campos con cambios a insertar.         
+ /*   v_num_gestion   ge_gestion.numero_gestion%type ;
+    v_comentario    ge_gestion.comentarios%type := null;   */                    
 
 BEGIN 
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
@@ -237,21 +239,21 @@ BEGIN
                 IF :NEW.ETAPA_INFO_ELECT = 4 THEN
 
                     BEGIN		 
-                    select
-                         num_telefono AS TELEFONO INTO v_telefono
-                    from
-                        PA.tel_personas
-                    where
-                        cod_persona = :NEW.nup
-                        and est_telefono = 'A'
-                        and tip_telefono = 'M'
-                        AND ROWNUM<=1;
+                        select
+                            num_telefono AS TELEFONO INTO v_telefono
+                        from
+                            PA.tel_personas
+                        where
+                            cod_persona = :NEW.nup
+                            and est_telefono = 'A'
+                            and tip_telefono = 'M'
+                            AND ROWNUM<=1;
 
-                   EXCEPTION
-                      WHEN NO_DATA_FOUND THEN
-                        v_telefono := NULL;
-                      WHEN OTHERS THEN
-                        v_telefono := NULL;
+                    EXCEPTION
+                        WHEN NO_DATA_FOUND THEN
+                            v_telefono := NULL;
+                        WHEN OTHERS THEN
+                            v_telefono := NULL;
                    END;
 
 
@@ -303,10 +305,10 @@ BEGIN
                         :old.tipo_id,
                         :old.num_id,
                         :old.fecha_nacimiento,
-                        :new.primer_nombre,
                         :old.nup,
                         1,
                         :old.primer_nombre,
+                        :new.primer_nombre,
                         :old.segundo_nombre,
                         :new.segundo_nombre,
                         :old.primer_apellido,
@@ -341,8 +343,21 @@ BEGIN
                         v_telefono
                     );
 
+                  
 
+                    --generar gestion automatica
+                  /* ge_util01.inserta_gestion(
+                        :old.cod_empresa, :new.nup, 
+                        null, null, 
+                        'Actualizaciones Reconocimiento Facial', v_comentario, 
+                        623, 'CER', 
+                        29, ge_util01.f_cod_empleado (user), 
+                        76, ge_util01.f_cod_empleado (user), 
+                        null, v_num_gestion
+                        );
 
+                    -- generar categoria
+                    ge_inserta_cat_proc(:old.cod_empresa,v_num_gestion,null,186,null);*/
 
 
                 ELSE
