@@ -6,6 +6,6 @@ DECLARE
 
 BEGIN
    IF :NEW.ESTADO = 3 THEN
-           update WEB.WEB_DOCS_OCR_DATA set ESTADO = 'C' where COD_CLIENTE = :new.nup;
+           update WEB.WEB_DOCS_OCR_DATA set ESTADO = 'CER' where COD_CLIENTE = :new.nup;
     END IF;
 END;

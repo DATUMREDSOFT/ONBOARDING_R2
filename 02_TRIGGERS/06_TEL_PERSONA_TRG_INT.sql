@@ -33,7 +33,6 @@ BEGIN
 
     IF ( substr(to_char(:new.num_telefono), 1, 1) <> '2' AND length(to_char(:new.num_telefono)) = 8) 
     and (vtipo_id in (2,3,4,10)) AND ( vier = 'A' ) AND updating('NUM_TELEFONO') and (t1_old is not null and t1_new is not null) 
-    and :new.ORIGEN_CEL !='O'
     THEN
         INSERT INTO cpsad.cs_actualiza_datos (
             id_actualizacion,
