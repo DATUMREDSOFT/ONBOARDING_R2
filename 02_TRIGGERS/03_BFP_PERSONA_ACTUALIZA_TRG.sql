@@ -2,7 +2,7 @@ CREATE OR REPLACE TRIGGER "RE"."BFP_PERSONA_ACTUALIZA_TRG" AFTER
     UPDATE OF primer_nombre,segundo_nombre,tipo_id,num_id,fecha_nacimiento,
     primer_apellido,segundo_apellido,apellido_casada,correo_electronico,
     correo_electronico2,ind_estado_registro,ESTADO_AFILIADO,ESTADO_EMAIL1,
-    ESTADO_EMAIL2, ETAPA_INFO_ELECT
+    ESTADO_EMAIL2, ETAPA_INFO_ELECT, nup
     ON RE.bfp_persona
     REFERENCING
             OLD AS old
@@ -35,10 +35,12 @@ DECLARE
     eafiliado_old varchar2(3, BYTE) := null;
 	eafiliado_new varchar2(3, BYTE) := null;
     v_telefono VARCHAR2(12 BYTE)    := null;
-	vcampos_con_cambios integer    := 0;  -- Variable para determinar el numero 
-	                                      -- de campos con cambios a insertar.         
+	vcampos_con_cambios integer     := 0;  -- Variable para determinar el numero 
+	                                      -- de campos con cambios a insertar.     
+    v_onboarding_pendiente integer := 0;
  /*   v_num_gestion   ge_gestion.numero_gestion%type ;
-    v_comentario    ge_gestion.comentarios%type := null;   */                    
+    v_comentario    ge_gestion.comentarios%type := null;   */  
+    
 
 BEGIN 
     -- Si ya tiene estado FCD (fallecido) procede a salirse sin generar registro
@@ -236,7 +238,21 @@ BEGIN
 
     ELSIF (:old.tipo_id IN (2,3,4,10)) AND :OLD.IND_ESTADO_REGISTRO = 'A' AND :NEW.IND_ESTADO_REGISTRO = 'A' 
     THEN
-                IF :NEW.ETAPA_INFO_ELECT = 4 THEN
+            
+                BEGIN
+                    SELECT count(*) INTO v_onboarding_pendiente FROM WEB.WEB_DOCS_OCR_DATA WHERE COD_CLIENTE = :NEW.NUP AND ESTADO ='PEN' ;
+                EXCEPTION
+                  WHEN NO_DATA_FOUND THEN
+                    v_onboarding_pendiente := 0;
+                  WHEN OTHERS THEN
+                  --FALLA PORQUE ENCUENTRA mutating, trigger/function
+                    v_onboarding_pendiente := 1;
+                END;
+                
+                
+                IF :NEW.ETAPA_INFO_ELECT = 4 AND v_onboarding_pendiente > 0 THEN
+                
+                   
 
                     BEGIN		 
                         select
