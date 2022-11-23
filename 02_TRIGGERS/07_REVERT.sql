@@ -1,0 +1,7 @@
+DROP TRIGGER WEB.ONBOARDING_R2_ACTUALIZA;
+DROP TRIGGER CPSAD.CS_ACTUALIZA_ONBOARDING_R2;
+
+REVOKE select, insert, update, delete ON PA.TEL_PERSONAS TO WEB;
+REVOKE select, insert, update, delete ON RE.BFP_PERSONA TO WEB;
+REVOKE select, insert, update, delete ON WEB.WEB_DOCS_OCR_DATA TO RE;
+REVOKE select, insert, update, delete ON WEB.WEB_DOCS_OCR_DATA TO CPSAD;
