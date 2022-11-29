@@ -38,6 +38,8 @@ DECLARE
 	vcampos_con_cambios integer     := 0;  -- Variable para determinar el numero 
 	                                      -- de campos con cambios a insertar.     
     v_onboarding_pendiente integer := 0;
+    v_correo_verificado   varchar2(100) := null;
+    v_correo2_onboarding  varchar2(100) := null;
  /*   v_num_gestion   ge_gestion.numero_gestion%type ;
     v_comentario    ge_gestion.comentarios%type := null;   */  
     
@@ -245,14 +247,12 @@ BEGIN
                   WHEN NO_DATA_FOUND THEN
                     v_onboarding_pendiente := 0;
                   WHEN OTHERS THEN
-                  --FALLA PORQUE ENCUENTRA mutating, trigger/function
+                  --FALLA PORQUE ENCUENTRA mutating, trigger/function eso indica que viene de onboarding
                     v_onboarding_pendiente := 1;
                 END;
                 
                 
-                IF :NEW.ETAPA_INFO_ELECT = 4 AND v_onboarding_pendiente > 0 THEN
-                
-                   
+                IF :NEW.ETAPA_INFO_ELECT = 4 AND v_onboarding_pendiente > 0 THEN                               
 
                     BEGIN		 
                         select
@@ -271,7 +271,16 @@ BEGIN
                         WHEN OTHERS THEN
                             v_telefono := NULL;
                    END;
-
+                   
+                   
+                    --v_correo_verificado := 
+                    select decode(:new.estado_email1,'A',:new.correo_electronico,decode(:new.estado_email2,'A',:new.correo_electronico2)) into v_correo_verificado from dual;
+                    
+                    v_correo2_onboarding := :NEW.correo_electronico2;
+                    
+                    IF v_correo_verificado = :NEW.correo_electronico2 THEN
+                        v_correo2_onboarding :=  :new.CORREO_ELECTRONICO;                       
+                    END IF;
 
                      INSERT INTO cpsad.cs_actualiza_datos (
                         id_actualizacion,
@@ -340,9 +349,9 @@ BEGIN
                         :old.fecha_nacimiento,
                         :new.fecha_nacimiento,
                         :OLD.correo_electronico,
-                        :new.correo_electronico,
+                        v_correo_verificado,
                         :old.correo_electronico2,
-                        :new.correo_electronico2,
+                        v_correo2_onboarding,
                         :old.ind_estado_registro,
                         :new.ind_estado_registro,
                         :old.ESTADO_AFILIADO,

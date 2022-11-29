@@ -18,12 +18,12 @@ DECLARE
    f_telefono_find			NUMBER(2, 0)			:=0;
    f_telefono_exist			NUMBER(2, 0)			:=0;
    v_telefono_exist 	    VARCHAR2(20 CHAR)		:=NULL;
-
+   v_num_gestion            NUMBER                  :=NULL;
+   v_correo_a_modificar     NUMBER                  :=NULL;
 BEGIN
    -- DELETE FROM WEB.LOGS_ONBRD_TEMP;
 
    IF :NEW.ESTADO ='PEN' THEN
-
 
 	BEGIN
 		SELECT NUP INTO v_num_id FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE AND ROWNUM <=1;
@@ -54,106 +54,88 @@ BEGIN
 	    END;
 
 	   IF v_estado_afiliado IS NOT NULL AND v_estado_afiliado = 'ACT'  THEN
+      
 
-
-	   		--CORREO ELECTRONICO
 	   		BEGIN 
-		   		SELECT CORREO_ELECTRONICO INTO v_correo_electronico FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
+		   		SELECT 
+                    CORREO_ELECTRONICO, 
+                    CORREO_ELECTRONICO2, 
+                    ESTADO_EMAIL1,
+                    ESTADO_EMAIL2,
+                    FECHA_EXPEDICION_ID,
+                    FECHA_EXPIRACION,
+                    decode(decode(estado_email1,'A',1,decode(estado_email2,'A',2)), NULL, 1, decode(estado_email1,'A',1,decode(estado_email2,'A',2)) )
+                    INTO 
+                        v_correo_electronico, 
+                        v_correo_electronico2, 
+                        v_estado_email1,
+                        v_estado_email2,
+                        v_fecha_expedicion_id,
+                        v_fecha_expiracion,
+                        v_correo_a_modificar   
+                FROM 
+                    RE.BFP_PERSONA 
+                WHERE 
+                    NUP = :NEW.COD_CLIENTE;
 		   	EXCEPTION
 		      WHEN NO_DATA_FOUND THEN
 		        v_correo_electronico := NULL;
+                v_correo_electronico2 := NULL;
+                v_estado_email1 := NULL;
+                v_estado_email2 := NULL;
+                v_fecha_expedicion_id := NULL;
+                v_fecha_expiracion := NULL;
 		      WHEN OTHERS THEN
 		       	v_correo_electronico := NULL;
+                v_correo_electronico2 := NULL;
+                v_estado_email1 := NULL;
+                v_estado_email2 := NULL;
+                v_fecha_expedicion_id := NULL;
+                v_fecha_expiracion := NULL;
 		   	END;
 
-		    --CORREO ELECTRONICO 2
-		    BEGIN 
-		   		SELECT CORREO_ELECTRONICO2 INTO v_correo_electronico2 FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
-		   	EXCEPTION
-		      WHEN NO_DATA_FOUND THEN
-		        v_correo_electronico2 := NULL;
-		      WHEN OTHERS THEN
-		       	v_correo_electronico2 := NULL;
-		   	END;
-
-		    --ESTADO_EMAIL1
-		    BEGIN 
-		   		SELECT ESTADO_EMAIL1 INTO v_estado_email1 FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
-		   	EXCEPTION
-		      WHEN NO_DATA_FOUND THEN
-		        v_estado_email1 := NULL;
-		      WHEN OTHERS THEN
-		       	v_estado_email1 := NULL;
-		   	END;
-
-		   --ESTADO_EMAIL2
-		    BEGIN 
-		   		SELECT ESTADO_EMAIL2 INTO v_estado_email2 FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
-		   	EXCEPTION
-		      WHEN NO_DATA_FOUND THEN
-		        v_estado_email2 := NULL;
-		      WHEN OTHERS THEN
-		       	v_estado_email2 := NULL;
-		   	END;
-
-            --INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, ':NEW.CORREO_ELECTRONICO', :NEW.CORREO_ELECTRONICO);  
-
-            IF :NEW.CORREO_ELECTRONICO IS NOT NULL THEN
-                IF NVL( v_correo_electronico , ' ')  != :NEW.CORREO_ELECTRONICO AND NVL( v_correo_electronico2 , ' ')  != :NEW.CORREO_ELECTRONICO THEN 
-                 IF v_estado_email1 = 'A' OR v_estado_email2 = 'A' THEN 
-                    f_modifica_correo := 1;
-                 END IF;
-                END IF;
+		  --SI RESPONDE 1 EL CORREO A MODIFICAR ES EL CORREO1
+            IF v_correo_a_modificar = 1 THEN
+                v_correo_electronico    := :NEW.CORREO_ELECTRONICO;
+                v_estado_email1         := 'A';
+                f_modifica_correo       :=     1;
+            END IF;
+          
+           --SI RESPONDE 2 EL CORREO A MODIFICAR ES EL CORREO2
+            IF v_correo_a_modificar = 2 THEN
+                v_correo_electronico2    := :NEW.CORREO_ELECTRONICO;
+                v_estado_email2          := 'A';
+                f_modifica_correo        :=  1;
             END IF;
 
 
-
-		  --FECHA_EXPEDICION_ID
-		    BEGIN 
-		   		SELECT FECHA_EXPEDICION_ID INTO v_fecha_expedicion_id FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
-		   	EXCEPTION
-		      WHEN NO_DATA_FOUND THEN
-		        v_fecha_expedicion_id := NULL;
-		      WHEN OTHERS THEN
-		       	v_fecha_expedicion_id := NULL;
-		   	END;
-
-
-
-
-		    IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY'), 'DD-MON-YY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY'), 'DD-MON-YY') THEN
-		   		f_fecha_expedicion_id :=1;
+            IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY'), 'DD-MON-YY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY'), 'DD-MON-YY') THEN
+		   		v_fecha_expedicion_id := :NEW.DOC_DATEOFISSUE;
+                f_fecha_expedicion_id :=1;
 		    END IF;
-
-
-
-		   --FECHA_EXPIRACION
-		    BEGIN 
-		   		SELECT FECHA_EXPIRACION INTO v_fecha_expiracion FROM RE.BFP_PERSONA WHERE NUP = :NEW.COD_CLIENTE;
-		   	EXCEPTION
-		      WHEN NO_DATA_FOUND THEN
-		        v_fecha_expiracion := NULL;
-		      WHEN OTHERS THEN
-		       	v_fecha_expiracion := NULL;
-		   	END;
 
 
 
 		    IF TO_CHAR(TO_DATE(:NEW.DOC_DATEOFEXPIRY ,'DD-MM-YYYY'), 'DD-MON-YY') != NVL(TO_CHAR(TO_DATE(v_fecha_expiracion,'DD-MON-YY'), 'DD-MON-YY'), ' ')  THEN
+                v_fecha_expiracion := :NEW.DOC_DATEOFEXPIRY;
 		   		f_fecha_expiracion :=1;
 		    END IF;
 
+            /***************************************************************************************
+            * INICIA ACTUALIZACION TELEFONO
+            ****************************************************************************************/
 
+            -- CONSULTE TELEFONO PARA ESTE NUP
             BEGIN		 
-            select
-                 num_telefono AS TELEFONO INTO v_num_telefono
-            from
-                PA.tel_personas
-            where
-                cod_persona = :NEW.COD_CLIENTE
-                and est_telefono = 'A'
-                and tip_telefono = 'M'
-                AND ROWNUM<=1;
+                select
+                     num_telefono AS TELEFONO INTO v_num_telefono
+                from
+                    PA.tel_personas
+                where
+                    cod_persona = :NEW.COD_CLIENTE
+                    and est_telefono = 'A'
+                    and tip_telefono = 'M'
+                    AND ROWNUM<=1;
 
            EXCEPTION
 		      WHEN NO_DATA_FOUND THEN
@@ -181,9 +163,7 @@ BEGIN
                     VALUES
                     (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
                 END IF;
-
            ELSE
-
              IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
                  UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
 
@@ -194,11 +174,40 @@ BEGIN
 
              END IF;
            END IF; 
+           
+            /***************************************************************************************
+            *  FINALIZA ACTUALIZACION TELEFONO
+            ****************************************************************************************/
 
 
 
 
-            UPDATE RE.BFP_PERSONA SET CORREO_ELECTRONICO = :NEW.CORREO_ELECTRONICO, FECHA_EXPEDICION_ID = TO_DATE(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YYYY'), 'DD-MON-YY'),  FECHA_EXPIRACION = TO_DATE(TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YYYY'), 'DD-MON-YY'), ETAPA_INFO_ELECT = 4  WHERE  NUP = :NEW.COD_CLIENTE; 
+            UPDATE RE.BFP_PERSONA 
+            SET 
+                FECHA_EXPEDICION_ID = TO_DATE(TO_DATE(v_fecha_expedicion_id,'DD-MM-YYYY'), 'DD-MON-YY'),  
+                FECHA_EXPIRACION = TO_DATE(TO_DATE(v_fecha_expiracion,'DD-MM-YYYY'), 'DD-MON-YY'), 
+                ETAPA_INFO_ELECT = 4,
+                CORREO_ELECTRONICO = v_correo_electronico, 
+                CORREO_ELECTRONICO2= v_correo_electronico2, 
+                ESTADO_EMAIL1 = v_estado_email1,
+                ESTADO_EMAIL2 = v_estado_email2      
+            WHERE  
+                NUP = :NEW.COD_CLIENTE; 
+                
+              --generar gestion automatica
+               GE.ge_util01.inserta_gestion(
+                    1, :NEW.COD_CLIENTE, 
+                    null, null, 
+                    'Actualizaciones Reconocimiento Facial', 'Actualizaciones Reconocimiento Facial', 
+                    623, 'CER', 
+                    29, null, 
+                    76, null, 
+                    null, v_num_gestion,
+                    null
+                    );
+            
+                -- generar categoria
+               -- GE.ge_inserta_cat_proc(1,v_num_gestion,null,186,null);
 
 
 
