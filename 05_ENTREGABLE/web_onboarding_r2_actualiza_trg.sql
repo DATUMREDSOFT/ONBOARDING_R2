@@ -13,6 +13,7 @@ DECLARE
    v_etapa_info_elect 		NUMBER(2, 0)			:=NULL;
    v_num_telefono			VARCHAR2(10 BYTE)	    :=NULL;
    f_modifica_correo        NUMBER(2, 0)			:=0;
+   f_agrega_correo          NUMBER(2, 0)			:=0;
    f_fecha_expedicion_id	NUMBER(2, 0)			:=0;
    f_fecha_expiracion		NUMBER(2, 0)			:=0;
    f_telefono_find			NUMBER(2, 0)			:=0;
@@ -96,13 +97,23 @@ BEGIN
 
 		  --SI RESPONDE 1 EL CORREO A MODIFICAR ES EL CORREO1
             IF v_correo_a_modificar = 1 THEN
+                IF v_correo_electronico != :NEW.CORREO_ELECTRONICO AND v_correo_electronico IS NOT NULL THEN
+                    f_modifica_correo     :=  1;
+                ELSE
+                    f_agrega_correo       :=  1;
+                END IF;
                 v_correo_electronico    := :NEW.CORREO_ELECTRONICO;
                 v_estado_email1         := 'A';
-                f_modifica_correo       :=     1;
+                
             END IF;
           
            --SI RESPONDE 2 EL CORREO A MODIFICAR ES EL CORREO2
             IF v_correo_a_modificar = 2 THEN
+                IF v_correo_electronico2 != :NEW.CORREO_ELECTRONICO AND v_correo_electronico2 IS NOT NULL THEN
+                    f_modifica_correo     :=  1;
+                ELSE
+                    f_agrega_correo       :=  1;
+                END IF;
                 v_correo_electronico2    := :NEW.CORREO_ELECTRONICO;
                 v_estado_email2          := 'A';
                 f_modifica_correo        :=  1;
@@ -153,25 +164,21 @@ BEGIN
                 v_telefono_exist := NULL;
             END;
 
-
-           IF NVL(v_num_telefono, ' ') = ' ' THEN                          
-                IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
+           
+           IF NVL(v_num_telefono, ' ') = ' ' THEN   --SE VALIDA SI NO VINO NUMERO DE TELEFONO                       
+                IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN --SE VALIDA QUE EL TELEFONO EXISTA AUNQUE SEA EN ESTADO INAC PARA HACER UPDATE DE ESTADO
                      UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
-                ELSE
+                ELSE 
                     INSERT INTO PA.tel_personas
                     (COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
                     VALUES
                     (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
                 END IF;
            ELSE
-             IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
+             IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN --VALIDO SI EL NUEMRO INGRESADO YA EXISTE PARA HACERLE UPDATE AL CAMPO ORIGEN_CEL
                  UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
-
-             ELSE
-
-              UPDATE PA.tel_personas SET  NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')),  EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE  AND  EST_TELEFONO = 'A' AND tip_telefono='M';
-
-
+             ELSE -- HAGO UPDATE AL NUMERO
+              UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O',  NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) WHERE COD_PERSONA = :NEW.COD_CLIENTE  AND  EST_TELEFONO = 'A' AND tip_telefono='M';
              END IF;
            END IF; 
            
@@ -198,7 +205,15 @@ BEGIN
                GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
                     null, null, 
-                    'Actualizaciones Reconocimiento Facial', 'Actualizaciones Reconocimiento Facial', 
+                    'Actualizaciones Reconocimiento Facial '|| 
+                    'FECHA_EXPEDICION_ID = ' || TO_DATE(TO_DATE(v_fecha_expedicion_id,'DD-MM-YYYY'), 'DD-MON-YY') 
+                    || ' FECHA_EXPIRACION = ' || TO_DATE(TO_DATE(v_fecha_expiracion,'DD-MM-YYYY'), 'DD-MON-YY') 
+                    || ' ETAPA_INFO_ELECT = 4 '
+                    || ' CORREO_ELECTRONICO = ' ||  v_correo_electronico
+                    || ' CORREO_ELECTRONICO2 = ' || v_correo_electronico2
+                    || ' ESTADO_EMAIL1 = ' || v_estado_email1
+                    || ' ESTADO_EMAIL2 = ' || v_estado_email2, 
+                    null,
                     623, 'CER', 
                     29, null, 
                     76, null, 
@@ -206,8 +221,41 @@ BEGIN
                     null
                     );
             
-                -- generar categoria
-               -- GE.ge_inserta_cat_proc(1,v_num_gestion,null,186,null);
+            --GENERAR LAS CATEGORIAS DE LA GESTION
+            
+            --MODIFCACION DE DOCUMENTO
+            IF f_fecha_expiracion = 1 OR f_fecha_expedicion_id = 1 THEN
+                 GE.ge_inserta_cat_proc(1,v_num_gestion,null,724,null);
+            END IF;
+            
+            --AGREGA CORREO
+            IF f_agrega_correo = 1 THEN
+                 GE.ge_inserta_cat_proc(1,v_num_gestion,null,725,null);
+            END IF;
+            
+            --MODIFICA CORREO
+            IF f_modifica_correo = 1 THEN
+                 GE.ge_inserta_cat_proc(1,v_num_gestion,null,726,null);
+            END IF;
+            
+           
+            
+            
+            --GESTION POR CAMBIOS EN TELEFONO
+             IF NVL(v_num_telefono, ' ') = ' ' THEN                          
+                IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN
+                   --MODIFICA TELEFONO
+                   GE.ge_inserta_cat_proc(1,v_num_gestion,null,728,null);
+                ELSE
+                   --AGREGA TELEFONO
+                   GE.ge_inserta_cat_proc(1,v_num_gestion,null,727,null);
+                END IF;
+           ELSE
+               --MODIFICA TELEFONO
+               GE.ge_inserta_cat_proc(1,v_num_gestion,null,728,null);
+           END IF; 
+               
+               
 
 
 
