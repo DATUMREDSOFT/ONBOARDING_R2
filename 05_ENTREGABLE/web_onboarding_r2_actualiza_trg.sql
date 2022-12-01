@@ -118,19 +118,19 @@ BEGIN
                 v_estado_email2          := 'A';
                 f_modifica_correo        :=  1;
             END IF;
-
-
-            IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND TO_CHAR(TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY'), 'DD-MON-YY') != TO_CHAR(TO_DATE(v_fecha_expedicion_id,'DD-MON-YY'), 'DD-MON-YY') THEN
-		   		v_fecha_expedicion_id := :NEW.DOC_DATEOFISSUE;
-                f_fecha_expedicion_id :=1;
-		    END IF;
-
-
-
-		    IF TO_CHAR(TO_DATE(:NEW.DOC_DATEOFEXPIRY ,'DD-MM-YYYY'), 'DD-MON-YY') != NVL(TO_CHAR(TO_DATE(v_fecha_expiracion,'DD-MON-YY'), 'DD-MON-YY'), ' ')  THEN
-                v_fecha_expiracion := :NEW.DOC_DATEOFEXPIRY;
+             
+        
+            IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND v_fecha_expedicion_id !=  TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY') THEN
+                v_fecha_expedicion_id := TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY');
+                f_fecha_expedicion_id :=1;      
+            END IF;
+            
+        
+            IF  :NEW.DOC_DATEOFEXPIRY IS NOT NULL AND v_fecha_expiracion  != TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YY')  THEN
+                v_fecha_expiracion := TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YY');
 		   		f_fecha_expiracion :=1;
 		    END IF;
+
 
             /***************************************************************************************
             * INICIA ACTUALIZACION TELEFONO
@@ -191,8 +191,8 @@ BEGIN
 
             UPDATE RE.BFP_PERSONA 
             SET 
-                FECHA_EXPEDICION_ID = TO_DATE(TO_DATE(v_fecha_expedicion_id,'DD-MM-YYYY'), 'DD-MON-YY'),  
-                FECHA_EXPIRACION = TO_DATE(TO_DATE(v_fecha_expiracion,'DD-MM-YYYY'), 'DD-MON-YY'), 
+                FECHA_EXPEDICION_ID = v_fecha_expedicion_id,  
+                FECHA_EXPIRACION = v_fecha_expiracion, 
                 ETAPA_INFO_ELECT = 4,
                 CORREO_ELECTRONICO = v_correo_electronico, 
                 CORREO_ELECTRONICO2= v_correo_electronico2, 
@@ -206,8 +206,8 @@ BEGIN
                     1, :NEW.COD_CLIENTE, 
                     null, null, 
                     'Actualizaciones Reconocimiento Facial '|| 
-                    'FECHA_EXPEDICION_ID = ' || TO_DATE(TO_DATE(v_fecha_expedicion_id,'DD-MM-YYYY'), 'DD-MON-YY') 
-                    || ' FECHA_EXPIRACION = ' || TO_DATE(TO_DATE(v_fecha_expiracion,'DD-MM-YYYY'), 'DD-MON-YY') 
+                    'FECHA_EXPEDICION_ID = ' || v_fecha_expedicion_id 
+                    || ' FECHA_EXPIRACION = ' || v_fecha_expiracion
                     || ' ETAPA_INFO_ELECT = 4 '
                     || ' CORREO_ELECTRONICO = ' ||  v_correo_electronico
                     || ' CORREO_ELECTRONICO2 = ' || v_correo_electronico2
