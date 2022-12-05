@@ -124,14 +124,14 @@ BEGIN
             END IF;
              
         
-            IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND v_fecha_expedicion_id !=  TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY') THEN
+            IF :NEW.DOC_DATEOFISSUE IS NOT NULL AND ( v_fecha_expedicion_id !=  TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY') OR v_fecha_expedicion_id IS NULL) THEN
                 v_fecha_expedicion_id := TO_DATE(:NEW.DOC_DATEOFISSUE,'DD-MM-YY');
                 f_fecha_expedicion_id :=1;   
                 v_mensaje_gestion    := v_mensaje_gestion || v_fecha_expedicion_id || ' - ';   
             END IF;
             
         
-            IF  :NEW.DOC_DATEOFEXPIRY IS NOT NULL AND v_fecha_expiracion  != TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YY')  THEN
+            IF  :NEW.DOC_DATEOFEXPIRY IS NOT NULL AND (v_fecha_expiracion  != TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YY') OR v_fecha_expiracion IS NULL )  THEN
                 v_fecha_expiracion := TO_DATE(:NEW.DOC_DATEOFEXPIRY,'DD-MM-YY');
 		   		    f_fecha_expiracion :=1;
               v_mensaje_gestion    := v_mensaje_gestion || v_fecha_expiracion || ' - ';
@@ -228,8 +228,9 @@ BEGIN
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
-                    724
+                    null
                     );
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,724,null);
                     
             ELSIF f_agrega_correo = 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1 AND f_modifica_correo != 1 AND  f_modifica_telefono	!=1  AND   f_agrega_telefono!=1  THEN
                 GE.ge_util01.inserta_gestion(
@@ -242,8 +243,9 @@ BEGIN
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
-                    726
+                    null
                     );
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,726,null);
             
             ELSIF f_modifica_correo = 1 AND  f_agrega_correo != 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1  AND  f_modifica_telefono	!=1  AND   f_agrega_telefono!=1 THEN
                   GE.ge_util01.inserta_gestion(
@@ -256,8 +258,9 @@ BEGIN
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
-                    725
+                    null
                     );
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,725,null);
             ELSIF f_modifica_correo != 1 AND  f_agrega_correo != 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1  AND  f_modifica_telefono	=1  AND   f_agrega_telefono!=1  THEN
                 GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
@@ -269,8 +272,9 @@ BEGIN
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
-                    728
+                    null
                     );
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,728,null);
              ELSIF f_modifica_correo != 1 AND  f_agrega_correo != 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1  AND  f_modifica_telefono	!=1  AND   f_agrega_telefono=1  THEN
                 GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
@@ -282,21 +286,23 @@ BEGIN
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
-                    727
+                    null
                     );
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,727,null);
             ELSE
                 GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
                     null, 
                     null, 
-                    'Actualizaciones Reconocimiento Facial ', 
-                    v_mensaje_gestion,
+                    'Actualizaciones Reconocimiento Facial ' || v_mensaje_gestion, 
+                    null,
                     623, 'CER', 
                     29, null, 
                     29, null, 
                     null, v_num_gestion,
                     null
                     );
+                    
             END IF;
 
 
