@@ -1,0 +1,7 @@
+ DELETE FROM WEB.LOGS_ONBRD_TEMP;
+                
+                 INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_fecha_expiracion',f_fecha_expiracion);
+                 INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_agrega_correo',f_agrega_correo);
+                 INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_modifica_correo',f_modifica_correo);
+                 INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_modifica_telefono',f_modifica_telefono);
+                 INSERT INTO WEB.LOGS_ONBRD_TEMP VALUES(WEB.LOGS_ONBRD_TEMP_SEC.NEXTVAL, 'f_agrega_telefono',f_agrega_telefono);    

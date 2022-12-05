@@ -1,0 +1,64 @@
+server amq onpremise   172.16.2.199 cofspas163
+
+amqdev       Confia1708
+
+server amq azure  10.10.51.17  cofspas164
+
+cofadmin     Confia2021!!
+
+server fuse onpremise 172.16.2.196 cofspas165
+
+fusedev       Confia1708
+
+server casandra onpremise 172.16.2.27
+keyspace CPS
+
+cassandra Confia1708
+
+Jboss -local
+jboss-admin      - Admin2021.
+fuseAdmin        - FuseDev2021.
+jboss-admin-fuse - Admin2021. <secret value="QWRtaW4yMDIxLg=="/>
+
+
+
+-Fuse UAT  172.16.2.170    COFSPAS169 
+    user fuseuat passw Confia1409
+ 
+-Cassandra UAT 172.16.2.174 cofspas170
+    user cassandra passw Confia1708
+
+
+Oracle 172.16.0.114 
+1537
+DESARROLLO
+RE Schema01
+
+jdbc:oracle:thin:@172.16.0.114:1537/DESARROLLO
+
+fuse azure dev 10.10.51.8
+liferay_func : yVdrXAByNY2SBtWc
+
+
+
+spring.datasource.url=jdbc:oracle:thin:@//172.16.2.214:1537/UATCONF1
+spring.datasource.username=RE
+spring.datasource.password=Oracle10
+
+
+
+Vaya el servidor es
+10.10.51.8
+Puerto 9990
+datum : Confia2021!
+Esto no se lo va a pedir pero por cualquier cosa hay que tenerlo
+<secret value="Q29uZmlhMjAyMSE=" />
+
+
+
+
+
+
+[disconnected /] connect
+ps -fea | grep java
+kill -9 <pid>

@@ -102,8 +102,10 @@ BEGIN
             IF v_correo_a_modificar = 1 THEN
                 IF v_correo_electronico != :NEW.CORREO_ELECTRONICO AND v_correo_electronico IS NOT NULL THEN
                     f_modifica_correo     :=  1;
-                ELSE
+                ELSIF v_correo_electronico IS NULL THEN
                     f_agrega_correo       :=  1;
+                ELSE
+                    f_agrega_correo       :=  0;
                 END IF;
                 v_correo_electronico    := :NEW.CORREO_ELECTRONICO;
                 v_estado_email1         := 'A';
@@ -114,8 +116,10 @@ BEGIN
             IF v_correo_a_modificar = 2 THEN
                 IF v_correo_electronico2 != :NEW.CORREO_ELECTRONICO AND v_correo_electronico2 IS NOT NULL THEN
                     f_modifica_correo     :=  1;
-                ELSE
+                ELSIF v_correo_electronico IS NULL THEN
                     f_agrega_correo       :=  1;
+                ELSE
+                    f_agrega_correo       :=  0;
                 END IF;
                 v_correo_electronico2    := :NEW.CORREO_ELECTRONICO;
                 v_estado_email2          := 'A';
@@ -214,9 +218,8 @@ BEGIN
                 ESTADO_EMAIL2 = v_estado_email2      
             WHERE  
                 NUP = :NEW.COD_CLIENTE; 
-                
-          
-         IF f_fecha_expiracion = 1 OR f_fecha_expedicion_id = 1 AND f_agrega_correo != 1  AND f_modifica_correo != 1  AND  f_modifica_telefono	!=1  AND   f_agrega_telefono!=1 THEN
+
+         IF (f_fecha_expiracion = 1 OR f_fecha_expedicion_id = 1) AND (f_agrega_correo != 1  AND f_modifica_correo != 1  AND  f_modifica_telefono	!=1  AND   f_agrega_telefono!=1) THEN
                --generar gestion automatica
                GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
@@ -245,7 +248,7 @@ BEGIN
                     null, v_num_gestion,
                     null
                     );
-                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,726,null);
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,725,null);
             
             ELSIF f_modifica_correo = 1 AND  f_agrega_correo != 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1  AND  f_modifica_telefono	!=1  AND   f_agrega_telefono!=1 THEN
                   GE.ge_util01.inserta_gestion(
@@ -260,7 +263,7 @@ BEGIN
                     null, v_num_gestion,
                     null
                     );
-                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,725,null);
+                    GE.ge_inserta_cat_proc(1,v_num_gestion,null,726,null);
             ELSIF f_modifica_correo != 1 AND  f_agrega_correo != 1 AND f_fecha_expiracion != 1 AND f_fecha_expedicion_id != 1  AND  f_modifica_telefono	=1  AND   f_agrega_telefono!=1  THEN
                 GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
@@ -289,7 +292,7 @@ BEGIN
                     null
                     );
                     GE.ge_inserta_cat_proc(1,v_num_gestion,null,727,null);
-            ELSE
+            ELSIF f_modifica_correo = 1 OR  f_agrega_correo  = 1 OR f_fecha_expiracion  = 1 OR f_fecha_expedicion_id  = 1 OR  f_modifica_telefono	 = 1 OR   f_agrega_telefono=1 THEN
                 GE.ge_util01.inserta_gestion(
                     1, :NEW.COD_CLIENTE, 
                     null, 
@@ -318,6 +321,5 @@ BEGIN
    WHEN OTHERS THEN
     raise_application_error(-20091, ' Error al crear registro en BFP_PERSONA.' || sqlerrm);
     RAISE;
-   NULL;
 
 END;
