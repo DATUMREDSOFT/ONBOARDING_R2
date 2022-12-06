@@ -145,7 +145,7 @@ BEGIN
             /***************************************************************************************
             * INICIA ACTUALIZACION TELEFONO
             ****************************************************************************************/
-
+            UPDATE PA.tel_personas SET   EST_TELEFONO = 'I', ORIGEN_CEL =NULL  WHERE COD_PERSONA = :NEW.COD_CLIENTE and (num_telefono like '7%' OR num_telefono like '8%' OR num_telefono like '6%') AND NUM_TELEFONO !=  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
             -- CONSULTE TELEFONO PARA ESTE NUP
             BEGIN		 
                 select
@@ -177,14 +177,14 @@ BEGIN
            
            IF NVL(v_num_telefono, ' ') = ' ' THEN   --SE VALIDA SI NO VINO NUMERO DE TELEFONO                       
                 IF NVL(v_telefono_exist, ' ') =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) THEN --SE VALIDA QUE EL TELEFONO EXISTA AUNQUE SEA EN ESTADO INAC PARA HACER UPDATE DE ESTADO
-                     UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
+                     UPDATE PA.tel_personas SET  tip_telefono = 'M', EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
                       f_modifica_telefono	:=1;
                       v_mensaje_gestion    := v_mensaje_gestion ||  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) || ' - ';
                 ELSE 
                     INSERT INTO PA.tel_personas
                     (COD_PERSONA, COD_AREA, NUM_TELEFONO, TIP_TELEFONO, TEL_UBICACION, EXTENSION, NOTA, ES_DEFAULT, POSICION, COD_DIRECCION, CONTACTO_DIA, CONTACTO_HORA, FECHA_ADICION, ADICIONADO_POR, FECHA_MODIFICACION, MODIFICADO_POR, EST_TELEFONO, ORIGEN_CEL)
                     VALUES
-                    (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, 'N', 1, NULL, 'CUA', 'HAB', SYSDATE, USER, NULL, NULL, 'A', 'O');
+                    (:NEW.COD_CLIENTE, '503', REPLACE(:NEW.TELEFONO , '503 ', ''), 'M', 'M', NULL, NULL, NULL, 1, NULL, 'CUA', 'CUA', SYSDATE, USER, NULL, NULL, 'A', 'O');
                 
                     v_mensaje_gestion    := v_mensaje_gestion ||  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) || ' - ';
                     f_agrega_telefono	:=1;
@@ -194,7 +194,7 @@ BEGIN
                 -- UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O' WHERE COD_PERSONA = :NEW.COD_CLIENTE AND NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', ''));
                 f_modifica_telefono	:=0;
              ELSE -- HAGO UPDATE AL NUMERO
-              UPDATE PA.tel_personas SET   EST_TELEFONO = 'A', ORIGEN_CEL = 'O',  NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) WHERE COD_PERSONA = :NEW.COD_CLIENTE  AND  EST_TELEFONO = 'A' AND tip_telefono='M';
+              UPDATE PA.tel_personas SET tip_telefono = 'M',   EST_TELEFONO = 'A', ORIGEN_CEL = 'O',  NUM_TELEFONO =  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) WHERE COD_PERSONA = :NEW.COD_CLIENTE  AND  EST_TELEFONO = 'A' AND tip_telefono='M';
                   f_modifica_telefono	:=1;
                   v_mensaje_gestion    := v_mensaje_gestion ||  TO_CHAR(REPLACE(:NEW.TELEFONO , '503 ', '')) || ' - ';
              END IF;
